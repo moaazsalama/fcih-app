@@ -1,10 +1,11 @@
 //import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:fcih_app/business_logic/cubit/courses_cubit.dart';
+import 'package:fcih_app/business_logic/coures/courses_cubit.dart';
 import 'package:fcih_app/constants/size_config.dart';
 import 'package:fcih_app/constants/strings.dart';
 import 'package:fcih_app/data/models/department.dart';
 import 'package:fcih_app/presention/widgets/course_item_widget.dart';
+import 'package:fcih_app/presention/widgets/custom_text_field.dart';
 import 'package:fcih_app/presention/widgets/fliter_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,7 +36,9 @@ class HomeScreen extends StatelessWidget {
                 centerTitle: true,
                 actions: [
                   IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.pushNamed(context, feedbackScreen);
+                      },
                       icon: const Icon(
                         Icons.feedback_outlined,
                         color: primaryColor,
@@ -55,23 +58,32 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      StreamBuilder<ConnectivityResult>(
-                          stream: Connectivity().onConnectivityChanged,
-                          initialData: ConnectivityResult.none,
-                          builder: (context, snapshot) {
-                                return AnimatedContainer(duration: Duration(milliseconds: 300),
-                                  alignment: Alignment.center,
-                                  color: Colors.white,
-                                  width: SizeConfig.screenWidth,
-                                  height: getProportionateScreenHeight(snapshot.data == ConnectivityResult.none?30:0),
-                                  constraints: BoxConstraints(maxHeight:getProportionateScreenHeight(snapshot.data == ConnectivityResult.none?30:0) ),
-                                  child: const Text('No Network Connection',style: TextStyle(
-                                      color: Colors.red,fontSize: 18
-
-                                  ),),
-                                );
-
-                          }),
+                      if (platformGetter() != PlatForm.web)
+                        StreamBuilder<ConnectivityResult>(
+                            stream: Connectivity().onConnectivityChanged,
+                            initialData: ConnectivityResult.none,
+                            builder: (context, snapshot) {
+                              return AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                alignment: Alignment.center,
+                                color: Colors.white,
+                                width: SizeConfig.screenWidth,
+                                height: getProportionateScreenHeight(
+                                    snapshot.data == ConnectivityResult.none
+                                        ? 30
+                                        : 0),
+                                constraints: BoxConstraints(
+                                    maxHeight: getProportionateScreenHeight(
+                                        snapshot.data == ConnectivityResult.none
+                                            ? 30
+                                            : 0)),
+                                child: const Text(
+                                  'No Network Connection',
+                                  style: TextStyle(
+                                      color: Colors.red, fontSize: 18),
+                                ),
+                              );
+                            }),
                       Center(child: buildSearchBar(context)),
                       SizedBox(
                         height: getProportionateScreenHeight(10),
@@ -90,9 +102,12 @@ class HomeScreen extends StatelessWidget {
                       ),
                       if (state is CoursesSearchingState)
                         Column(
-                          children: (state as CoursesSearchingState)
+                          children: (state)
                               .searchedCourses
-                              .map((e) => CourseItem(course: e))
+                              .map((e) => Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: CourseItem(course: e),
+                                  ))
                               .toList(),
                         )
                       else
@@ -116,67 +131,60 @@ class HomeScreen extends StatelessWidget {
               ),
             );
           });
-        } else
+        } else {
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
             ),
           );
+        }
       },
     );
   }
 
-  ExpansionTile departmentGetter(
+  Widget departmentGetter(
       BuildContext context, String title, Department department) {
     var fitlteredData = BlocProvider.of<CoursesCubit>(context).fliteredCourses;
-    return ExpansionTile(
-      initiallyExpanded: true,
-      title: Text(
-        title,
-        textAlign: TextAlign.start,
-        style: Theme.of(context).textTheme.subtitle1!.copyWith(
-            fontSize: SizeConfig.orientation == Orientation.portrait
-                ? getProportionScreenration(25)
-                : getProportionScreenration(75),
-            fontWeight: FontWeight.bold),
-      ),
-      children: List.generate(fitlteredData.length, (index) {
-        if (fitlteredData[index].department == department) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5.0),
-            child: CourseItem(
-              course: fitlteredData[index],
+    var list = fitlteredData.where((e) => e.department == department).toList();
+    var courses = List.generate(list.length, (index) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5.0),
+        child: CourseItem(
+          course: list[index],
+        ),
+      );
+    });
+    return courses.isEmpty
+        ? Container()
+        : ExpansionTile(
+            initiallyExpanded: true,
+            title: Text(
+              title,
+              textAlign: TextAlign.start,
+              style: Theme.of(context).textTheme.subtitle1!.copyWith(
+                  fontSize: SizeConfig.orientation == Orientation.portrait
+                      ? getProportionScreenration(25)
+                      : getProportionScreenration(75),
+                  fontWeight: FontWeight.bold),
             ),
+            children: courses,
           );
-        } else {
-          return Container();
-        }
-      }),
-    );
   }
 
   Widget buildSearchBar(BuildContext context) {
     return SizedBox(
       height: getProportionateScreenHeight(
           SizeConfig.orientation == Orientation.portrait ? 40 : 120),
-      child: TextField(
+      child: CustomTextField(
         onChanged: BlocProvider.of<CoursesCubit>(context).searching,
-        decoration: InputDecoration(
-            prefixIcon: Icon(
-              Icons.search,
-              color: Colors.grey,
-              size: SizeConfig.orientation == Orientation.portrait
-                  ? getProportionScreenration(24)
-                  : getProportionScreenration(75),
-            ),
-            fillColor: Colors.grey[300],
-            hintText: 'Search..',
-            hintStyle: TextStyle(
-                fontSize: SizeConfig.orientation == Orientation.portrait
-                    ? getProportionScreenration(16)
-                    : getProportionScreenration(60)),
-            enabledBorder: InputBorder.none,
-            filled: true),
+        hintText: 'Searching..',
+        prefixIcon: Icon(
+          Icons.search,
+          color: Colors.grey,
+          size: SizeConfig.orientation == Orientation.portrait
+              ? getProportionScreenration(24)
+              : getProportionScreenration(75),
+        ),
       ),
     );
   }

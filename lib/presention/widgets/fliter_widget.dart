@@ -1,4 +1,4 @@
-import 'package:fcih_app/business_logic/cubit/courses_cubit.dart';
+import 'package:fcih_app/business_logic/coures/courses_cubit.dart';
 import 'package:fcih_app/constants/size_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

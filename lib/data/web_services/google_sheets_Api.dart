@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_bool_literals_in_conditional_expressions
-
 import 'package:gsheets/gsheets.dart';
 
 class UserSheetApi {
@@ -22,19 +20,18 @@ class UserSheetApi {
   ''';
   static List<String> admins = [];
   static Worksheet? _courses;
+  static Worksheet? _feedback;
   static final _gsheets = GSheets(_credentials);
 
   static Future<void> init() async {
-    try {
-      final spreadsheet = await _gsheets.spreadsheet(_spreedSheetId);
-      _courses = await _getWorkSheet(spreadsheet, title: 'Courses');
-    } catch (e) {
-      print(e.toString());
-    }
+    final spreadsheet = await _gsheets.spreadsheet(_spreedSheetId);
+    _courses = await _getWorkSheet(spreadsheet, title: 'Courses');
+    _feedback = await _getWorkSheet(spreadsheet, title: 'Feedbacks');
   }
 
   Future<List<Map<String, dynamic>>?> getCourses() async {
     var allRows = await _courses!.values.map.allRows(fromRow: 1);
+
     return allRows;
   }
 
@@ -53,6 +50,20 @@ class UserSheetApi {
       return await spreedSheet.addWorksheet(title);
     } catch (e) {
       return spreedSheet.worksheetByTitle(title);
+    }
+  }
+
+  static Future<bool> insertComment(
+      String name, String email, String comment, DateTime dateTime) async {
+    if (_feedback != null) {
+      return await _feedback!.values.map.appendRow({
+        'Name': name,
+        'Email': email,
+        'Comment': comment,
+        'Time': dateTime.toString()
+      });
+    } else {
+      return false;
     }
   }
 }

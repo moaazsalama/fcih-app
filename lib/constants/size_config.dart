@@ -12,7 +12,7 @@ class SizeConfig {
     screenWidth = _mediaQueryData.size.width;
 
     screenHeight = _mediaQueryData.size.height;
-    print('$screenHeight $screenWidth');
+
     orientation = _mediaQueryData.orientation;
   }
 }
@@ -38,7 +38,6 @@ double getProportionScreenration(double input) {
   final result = test / pro;
 
   final value = input * result;
-
   return value;
 }
 

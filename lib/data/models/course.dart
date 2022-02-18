@@ -43,22 +43,24 @@ class Course {
   }
 
   factory Course.fromMap(Map<String, dynamic> map) {
-    print(map);
-    try {
-      return Course(
-        code: map['code'] as String,
+    return Course(
+        code: map['code'],
         name: map['name'] as String,
         link: map['link'] as String,
         level: int.parse(map['level']),
         department: map['department'] != null
             ? Department.values[int.parse(map['department'])]
-            : null,
-      );
-    } on Exception catch (e) {
-      print(e.toString());
-
-      return Course();
-    }
+            : null);
+  }
+  factory Course.fromDatabase(Map<String, Object?> map) {
+    return Course(
+        code: map['code'].toString(),
+        name: map['name'].toString(),
+        link: map['link'].toString(),
+        level: int.parse(map['level'].toString()),
+        department: map['department'] != null
+            ? Department.values[int.parse(map['department'].toString())]
+            : null);
   }
 
   String toJson() => json.encode(toMap());

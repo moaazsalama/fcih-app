@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:fcih_app/constants/size_config.dart';
 import 'package:fcih_app/data/models/course.dart';
-import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CourseItem extends StatelessWidget {
@@ -36,8 +36,13 @@ class CourseItem extends StatelessWidget {
               color: Colors.black54),
         ),
         trailing: IconButton(
-            onPressed: () {
-              launch(course.link!);
+            onPressed: () async {
+              try {
+                await launch(course.link!, forceWebView: true)
+                    .then((value) => print('reslut' + value.toString()));
+              } on Exception catch (e) {
+                print(e);
+              }
             },
             icon: const Icon(Icons.open_in_new)),
       ),
